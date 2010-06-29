@@ -16,20 +16,21 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
+import org.infinispan.Cache;
+
 import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
+
 import de.cosmocode.palava.ipc.IpcSessionProvider;
-import org.infinispan.Cache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
+ * 
+ * 
  * @author Tobias Sarnowski
  */
 public class InfinispanSessionModule implements Module {
-    private static final Logger LOG = LoggerFactory.getLogger(InfinispanSessionModule.class);
 
     private String cacheName;
 
@@ -43,4 +44,5 @@ public class InfinispanSessionModule implements Module {
         binder.bind(IpcSessionProvider.class).to(SessionProvider.class).asEagerSingleton();
         binder.bind(Cache.class).annotatedWith(SessionCache.class).to(Key.get(Cache.class, Names.named(cacheName)));
     }
+    
 }

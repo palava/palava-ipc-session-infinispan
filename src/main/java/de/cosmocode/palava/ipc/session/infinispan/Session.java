@@ -24,16 +24,20 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
+ * 
+ * 
  * @author Tobias Sarnowski
  */
-public final class Session extends AbstractIpcSession implements IpcSession, Serializable {
+final class Session extends AbstractIpcSession implements IpcSession, Serializable {
+
+    private static final long serialVersionUID = 5123722821784161701L;
 
     private SessionKey key;
 
-    private Map<Object,Object> ctx;
-
+    private Map<Object, Object> ctx;
 
     public Session() {
+        
     }
 
     public Session(String sessionId, String identifier) {
@@ -62,14 +66,20 @@ public final class Session extends AbstractIpcSession implements IpcSession, Ser
 
     @Override
     public String toString() {
-        return "Session{" +
-                "key=" + key +
-                "entries=" + ctx.size() +
-                '}';
+        return "Session{" + "key=" + key + "entries=" + ctx.size() + '}';
     }
 
+    /**
+     * Serializable map key for {@link Session}s containing
+     * session id and identifier.
+     *
+     * @author Tobias Sarnowski
+     * @author Willi Schoenborn
+     */
     public static final class SessionKey implements Serializable {
 
+        private static final long serialVersionUID = 7054937369389336961L;
+        
         private String sessionId;
         private String identifier;
 
@@ -88,30 +98,47 @@ public final class Session extends AbstractIpcSession implements IpcSession, Ser
 
         @Override
         public String toString() {
-            return "SessionKey{" +
-                    "sessionId='" + sessionId + '\'' +
-                    ", identifier='" + identifier + '\'' +
-                    '}';
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            final SessionKey that = (SessionKey) o;
-
-            if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
-            if (sessionId != null ? !sessionId.equals(that.sessionId) : that.sessionId != null) return false;
-
-            return true;
+            return "SessionKey{" + "sessionId='" + sessionId + '\'' + ", identifier='" + identifier + '\'' + '}';
         }
 
         @Override
         public int hashCode() {
-            int result = sessionId != null ? sessionId.hashCode() : 0;
-            result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((identifier == null) ? 0 : identifier.hashCode());
+            result = prime * result + ((sessionId == null) ? 0 : sessionId.hashCode());
             return result;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof SessionKey)) {
+                return false;
+            }
+            SessionKey other = (SessionKey) obj;
+            if (identifier == null) {
+                if (other.identifier != null) {
+                    return false;
+                }
+            } else if (!identifier.equals(other.identifier)) {
+                return false;
+            }
+            if (sessionId == null) {
+                if (other.sessionId != null) {
+                    return false;
+                }
+            } else if (!sessionId.equals(other.sessionId)) {
+                return false;
+            }
+            return true;
+        }
+        
     }
+    
 }

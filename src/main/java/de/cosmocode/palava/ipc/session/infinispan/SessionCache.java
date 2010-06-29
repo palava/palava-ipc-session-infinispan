@@ -16,15 +16,26 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
-import com.google.inject.BindingAnnotation;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.infinispan.Cache;
+
+import com.google.inject.BindingAnnotation;
 
 /**
+ * Binding annotation for session {@link Cache}s.
+ * 
  * @author Tobias Sarnowski
  */
-@BindingAnnotation
 @Retention(RetentionPolicy.RUNTIME)
+@Target({
+    ElementType.METHOD,
+    ElementType.PARAMETER
+})
+@BindingAnnotation
 @interface SessionCache {
+    
 }
