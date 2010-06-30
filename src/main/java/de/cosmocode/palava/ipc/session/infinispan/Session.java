@@ -16,12 +16,13 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
-import com.google.common.collect.Maps;
-import de.cosmocode.palava.ipc.AbstractIpcSession;
-import de.cosmocode.palava.ipc.IpcSession;
-
 import java.io.Serializable;
 import java.util.Map;
+
+import com.google.common.collect.Maps;
+
+import de.cosmocode.palava.ipc.AbstractIpcSession;
+import de.cosmocode.palava.ipc.IpcSession;
 
 /**
  * 

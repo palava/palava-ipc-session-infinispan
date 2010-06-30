@@ -16,15 +16,9 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import de.cosmocode.palava.core.Registry;
-import de.cosmocode.palava.core.lifecycle.Disposable;
-import de.cosmocode.palava.core.lifecycle.Initializable;
-import de.cosmocode.palava.core.lifecycle.LifecycleException;
-import de.cosmocode.palava.ipc.*;
-import de.cosmocode.palava.ipc.session.infinispan.Session.SessionKey;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.infinispan.Cache;
 import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachelistener.annotation.CacheEntryEvicted;
@@ -32,8 +26,20 @@ import org.infinispan.notifications.cachelistener.event.CacheEntryEvictedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import de.cosmocode.palava.core.Registry;
+import de.cosmocode.palava.core.lifecycle.Disposable;
+import de.cosmocode.palava.core.lifecycle.Initializable;
+import de.cosmocode.palava.core.lifecycle.LifecycleException;
+import de.cosmocode.palava.ipc.IpcConnection;
+import de.cosmocode.palava.ipc.IpcConnectionDestroyEvent;
+import de.cosmocode.palava.ipc.IpcSession;
+import de.cosmocode.palava.ipc.IpcSessionNotAttachedException;
+import de.cosmocode.palava.ipc.IpcSessionProvider;
+import de.cosmocode.palava.ipc.session.infinispan.Session.SessionKey;
 
 /**
  * 
