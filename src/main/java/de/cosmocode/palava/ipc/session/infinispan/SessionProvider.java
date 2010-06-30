@@ -19,7 +19,6 @@ package de.cosmocode.palava.ipc.session.infinispan;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import de.cosmocode.palava.concurrent.BackgroundScheduler;
 import de.cosmocode.palava.core.Registry;
 import de.cosmocode.palava.core.lifecycle.Disposable;
 import de.cosmocode.palava.core.lifecycle.Initializable;
@@ -34,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,7 +54,6 @@ final class SessionProvider implements IpcSessionProvider, Initializable,
     @Inject
     @SuppressWarnings("unchecked")
     public SessionProvider(@SessionCache Cache<?, ?> cache,
-        @BackgroundScheduler ScheduledExecutorService scheduler,
         Registry registry) {
         this.cache = (Cache<SessionKey, Session>) Preconditions.checkNotNull(cache, "Cache");
         this.registry = Preconditions.checkNotNull(registry, "Registry");
