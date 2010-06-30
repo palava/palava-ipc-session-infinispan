@@ -16,13 +16,13 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
-import java.io.Serializable;
-import java.util.Map;
-
 import com.google.common.collect.Maps;
-
 import de.cosmocode.palava.ipc.AbstractIpcSession;
 import de.cosmocode.palava.ipc.IpcSession;
+
+import java.io.Serializable;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 
@@ -41,9 +41,10 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
         
     }
 
-    public Session(String sessionId, String identifier) {
+    Session(String sessionId, String identifier, long time, TimeUnit timeUnit) {
         ctx = Maps.newHashMap();
         key = new SessionKey(sessionId, identifier);
+        setTimeout(time, timeUnit);
     }
 
     public SessionKey getKey() {
@@ -67,7 +68,7 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
 
     @Override
     public String toString() {
-        return "Session{" + "key=" + key + "entries=" + ctx.size() + '}';
+        return "Session{key=" + key + ", entries=" + ctx.size() + '}';
     }
 
     /**
@@ -99,7 +100,7 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
 
         @Override
         public String toString() {
-            return "SessionKey{" + "sessionId='" + sessionId + '\'' + ", identifier='" + identifier + '\'' + '}';
+            return "SessionKey{sessionId='" + sessionId + '\'' + ", identifier='" + identifier + '\'' + '}';
         }
 
         @Override
