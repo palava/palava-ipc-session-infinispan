@@ -26,14 +26,14 @@ import com.google.inject.name.Names;
 import de.cosmocode.palava.ipc.IpcSessionProvider;
 
 /**
- * 
+ * Binds {@link IpcSessionProvider} to {@link SessionProvider} and
+ * {@link Cache} annotated with {@link SessionCache} to {@code @Named(cacheName) Cache}.
  * 
  * @author Tobias Sarnowski
  */
 public class InfinispanSessionModule implements Module {
 
     private String cacheName;
-
 
     public InfinispanSessionModule(String cacheName) {
         this.cacheName = cacheName;

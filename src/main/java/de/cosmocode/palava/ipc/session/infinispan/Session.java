@@ -16,6 +16,7 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import de.cosmocode.palava.ipc.AbstractIpcSession;
 import de.cosmocode.palava.ipc.IpcSession;
@@ -25,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 
+ * Custon {@link IpcSession} implementation which holds a {@link Key}.
  * 
  * @author Tobias Sarnowski
  */
@@ -33,7 +34,7 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
 
     private static final long serialVersionUID = 5123722821784161701L;
 
-    private SessionKey key;
+    private Key key;
 
     private Map<Object, Object> ctx;
 
@@ -43,11 +44,11 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
 
     Session(String sessionId, String identifier, long time, TimeUnit timeUnit) {
         ctx = Maps.newHashMap();
-        key = new SessionKey(sessionId, identifier);
+        key = new Key(sessionId, identifier);
         setTimeout(time, timeUnit);
     }
 
-    public SessionKey getKey() {
+    public Key getKey() {
         return key;
     }
 
@@ -78,14 +79,14 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
      * @author Tobias Sarnowski
      * @author Willi Schoenborn
      */
-    public static final class SessionKey implements Serializable {
+    public static final class Key implements Serializable {
 
         private static final long serialVersionUID = 7054937369389336961L;
         
         private String sessionId;
         private String identifier;
 
-        public SessionKey(String sessionId, String identifier) {
+        public Key(String sessionId, String identifier) {
             this.sessionId = sessionId;
             this.identifier = identifier;
         }
@@ -100,45 +101,40 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
 
         @Override
         public String toString() {
-            return "SessionKey{sessionId='" + sessionId + '\'' + ", identifier='" + identifier + '\'' + '}';
+            return "Session.Key {sessionId='" + sessionId + '\'' + ", identifier='" + identifier + '\'' + '}';
         }
 
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((identifier == null) ? 0 : identifier.hashCode());
-            result = prime * result + ((sessionId == null) ? 0 : sessionId.hashCode());
-            return result;
+            return Objects.hashCode(sessionId, identifier);
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
+        public boolean equals(Object that) {
+            if (this == that) {
                 return true;
-            }
-            if (obj == null) {
+            } else if (that instanceof Key) {
+                final Key other = Key.class.cast(that);
+                return Objects.equal(sessionId, other.sessionId) &&
+                    Objects.equal(identifier, other.identifier);
+            } else {
                 return false;
             }
-            if (!(obj instanceof SessionKey)) {
-                return false;
+        }
+        
+        /**
+         * Returns the {@link Key} for the given {@link IpcSession}.
+         * 
+         * @since 1.2
+         * @param session the session
+         * @return the key of the session
+         */
+        public static Key get(IpcSession session) {
+            if (session instanceof Session) {
+                return Session.class.cast(session).getKey();
+            } else {
+                return new Key(session.getSessionId(), session.getIdentifier());
             }
-            SessionKey other = (SessionKey) obj;
-            if (identifier == null) {
-                if (other.identifier != null) {
-                    return false;
-                }
-            } else if (!identifier.equals(other.identifier)) {
-                return false;
-            }
-            if (sessionId == null) {
-                if (other.sessionId != null) {
-                    return false;
-                }
-            } else if (!sessionId.equals(other.sessionId)) {
-                return false;
-            }
-            return true;
         }
         
     }

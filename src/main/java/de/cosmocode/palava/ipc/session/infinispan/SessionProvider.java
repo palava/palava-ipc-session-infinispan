@@ -16,28 +16,33 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
+import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.infinispan.Cache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+
 import de.cosmocode.palava.concurrent.BackgroundScheduler;
 import de.cosmocode.palava.core.Registry;
 import de.cosmocode.palava.core.lifecycle.Disposable;
 import de.cosmocode.palava.core.lifecycle.Initializable;
 import de.cosmocode.palava.core.lifecycle.LifecycleException;
-import de.cosmocode.palava.ipc.*;
-import de.cosmocode.palava.ipc.session.infinispan.Session.SessionKey;
-import org.infinispan.Cache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import de.cosmocode.palava.ipc.IpcConnection;
+import de.cosmocode.palava.ipc.IpcConnectionDestroyEvent;
+import de.cosmocode.palava.ipc.IpcSession;
+import de.cosmocode.palava.ipc.IpcSessionConfig;
+import de.cosmocode.palava.ipc.IpcSessionNotAttachedException;
+import de.cosmocode.palava.ipc.IpcSessionProvider;
 
 /**
- *
+ * Session provider baced by a {@link Cache}.
  *
  * @author Tobias Sarnowski
  */
@@ -47,35 +52,35 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
 
     private static final Logger LOG = LoggerFactory.getLogger(SessionProvider.class);
 
-    private final Cache<SessionKey, Session> cache;
+    private final Cache<Session.Key, IpcSession> cache;
     private final Registry registry;
-    private ScheduledExecutorService scheduledExecutorService;
+    private ScheduledExecutorService scheduler;
     private final long time;
     private final TimeUnit timeUnit;
 
     @Inject
     @SuppressWarnings("unchecked")
     public SessionProvider(@SessionCache Cache cache,
-                           Registry registry,
-                           @BackgroundScheduler ScheduledExecutorService scheduledExecutorService,
-                           @Named(IpcSessionConfig.EXPIRATION_TIME) long time,
-                           @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
-        this.scheduledExecutorService = scheduledExecutorService;
+        Registry registry,
+        @BackgroundScheduler ScheduledExecutorService scheduler,
+        @Named(IpcSessionConfig.EXPIRATION_TIME) long time,
+        @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
+        this.scheduler = scheduler;
         this.time = time;
         this.timeUnit = timeUnit;
-        this.cache = (Cache<SessionKey, Session>) Preconditions.checkNotNull(cache, "Cache");
+        this.cache = (Cache<Session.Key, IpcSession>) Preconditions.checkNotNull(cache, "Cache");
         this.registry = Preconditions.checkNotNull(registry, "Registry");
     }
 
     @Override
     public void initialize() throws LifecycleException {
         registry.register(IpcConnectionDestroyEvent.class, this);
-        scheduledExecutorService.scheduleAtFixedRate(this, 1, 15, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this, 1, 15, TimeUnit.MINUTES);
     }
 
     @Override
     public IpcSession getSession(String sessionId, String identifier) {
-        Session session = cache.get(new SessionKey(sessionId, identifier));
+        IpcSession session = cache.get(new Session.Key(sessionId, identifier));
         if (session != null && session.isExpired()) {
             expireSession(session);
             session = null;
@@ -89,36 +94,33 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
 
     @Override
     public void run() {
-        for (Map.Entry<Session.SessionKey,Session> entry: cache.entrySet()) {
-            Session session = entry.getValue();
+        for (IpcSession session : cache.values()) {
             if (session.isExpired()) {
                 expireSession(session);
             }
         }
     }
 
-    private void expireSession(Session session) {
+    private void expireSession(IpcSession session) {
         LOG.info("Expiring {}", session);
         try {
-            cache.removeAsync(session.getKey());
+            cache.removeAsync(Session.Key.get(session));
+        } finally {
             session.clear();
-        } catch (Exception e) {
-            LOG.error("Unexpected exception during expiring", e);
         }
     }
 
     @Override
     public void eventIpcConnectionDestroy(IpcConnection connection) {
-        final IpcSession ipcSession;
+        final IpcSession session;
+        
         try {
-            ipcSession = connection.getSession();
+            session = connection.getSession();
         } catch (IpcSessionNotAttachedException e) {
             return;
         }
-        if (ipcSession instanceof Session) {
-            final Session session = Session.class.cast(ipcSession);
-            cache.put(session.getKey(), session);
-        }
+        
+        cache.put(Session.Key.get(session), session);
     }
 
     @Override
@@ -128,7 +130,7 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
 
     @Override
     public String toString() {
-        return "SessionProvider{" + "cache=" + cache + '}';
+        return "SessionProvider {" + "cache=" + cache + '}';
     }
 
 }
