@@ -20,6 +20,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ import de.cosmocode.palava.ipc.IpcSession;
 import de.cosmocode.palava.ipc.IpcSessionConfig;
 import de.cosmocode.palava.ipc.IpcSessionNotAttachedException;
 import de.cosmocode.palava.ipc.IpcSessionProvider;
+import de.cosmocode.palava.jmx.MBeanService;
 
 /**
  * Session provider baced by a {@link Cache}.
@@ -48,34 +50,43 @@ import de.cosmocode.palava.ipc.IpcSessionProvider;
  */
 @Singleton
 final class SessionProvider implements IpcSessionProvider, Initializable, Runnable,
-        IpcConnectionDestroyEvent, Disposable {
+    IpcConnectionDestroyEvent, Disposable, SessionProviderMBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(SessionProvider.class);
 
     private final Cache<Session.Key, IpcSession> cache;
+    private final AdvancedCache<Session.Key, IpcSession> advancedCache;
+    
     private final Registry registry;
+    private final MBeanService mBeanService;
+    
     private ScheduledExecutorService scheduler;
     private final long time;
     private final TimeUnit timeUnit;
 
     @Inject
     @SuppressWarnings("unchecked")
-    public SessionProvider(@SessionCache Cache cache,
+    public SessionProvider(
         Registry registry,
+        MBeanService mBeanService,
+        @SessionCache Cache cache,
         @BackgroundScheduler ScheduledExecutorService scheduler,
         @Named(IpcSessionConfig.EXPIRATION_TIME) long time,
         @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
-        this.scheduler = scheduler;
-        this.time = time;
-        this.timeUnit = timeUnit;
-        this.cache = (Cache<Session.Key, IpcSession>) Preconditions.checkNotNull(cache, "Cache");
         this.registry = Preconditions.checkNotNull(registry, "Registry");
+        this.mBeanService = Preconditions.checkNotNull(mBeanService, "MBeanService");
+        this.cache = (Cache<Session.Key, IpcSession>) Preconditions.checkNotNull(cache, "Cache");
+        this.advancedCache = this.cache.getAdvancedCache();
+        this.scheduler = Preconditions.checkNotNull(scheduler, "Scheduler");
+        this.time = time;
+        this.timeUnit = Preconditions.checkNotNull(timeUnit, "TimeUnit");
     }
 
     @Override
     public void initialize() throws LifecycleException {
         registry.register(IpcConnectionDestroyEvent.class, this);
         scheduler.scheduleAtFixedRate(this, 1, 15, TimeUnit.MINUTES);
+        mBeanService.register(this);
     }
 
     @Override
@@ -124,8 +135,62 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
     }
 
     @Override
+    public int getCurrentNumberOfEntries() {
+        return advancedCache.getStats().getCurrentNumberOfEntries();
+    }
+
+    @Override
+    public long getEvictions() {
+        return advancedCache.getStats().getEvictions();
+    }
+
+    @Override
+    public long getHits() {
+        return advancedCache.getStats().getHits();
+    }
+
+    @Override
+    public long getMisses() {
+        return advancedCache.getStats().getMisses();
+    }
+
+    @Override
+    public long getRemoveHits() {
+        return advancedCache.getStats().getRemoveHits();
+    }
+
+    @Override
+    public long getRemoveMisses() {
+        return advancedCache.getStats().getRemoveMisses();
+    }
+
+    @Override
+    public long getRetrievals() {
+        return advancedCache.getStats().getRetrievals();
+    }
+
+    @Override
+    public long getStores() {
+        return advancedCache.getStats().getStores();
+    }
+
+    @Override
+    public long getTimeSinceStart() {
+        return advancedCache.getStats().getTimeSinceStart();
+    }
+
+    @Override
+    public long getTotalNumberOfEntries() {
+        return advancedCache.getStats().getTotalNumberOfEntries();
+    }
+
+    @Override
     public void dispose() throws LifecycleException {
-        registry.remove(this);
+        try {
+            mBeanService.unregister(this);
+        } finally {
+            registry.remove(this);
+        }
     }
 
     @Override

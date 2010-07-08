@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 final class Session extends AbstractIpcSession implements IpcSession, Serializable {
 
-    private static final long serialVersionUID = 5123722821784161701L;
+    private static final long serialVersionUID = 1399654783127769393L;
 
     private Key key;
 
@@ -81,7 +81,7 @@ final class Session extends AbstractIpcSession implements IpcSession, Serializab
      */
     public static final class Key implements Serializable {
 
-        private static final long serialVersionUID = 7054937369389336961L;
+        private static final long serialVersionUID = -7883453312926176278L;
         
         private String sessionId;
         private String identifier;
