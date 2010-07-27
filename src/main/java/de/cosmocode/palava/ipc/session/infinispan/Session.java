@@ -16,14 +16,15 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
-import de.cosmocode.palava.ipc.AbstractIpcSession;
-import de.cosmocode.palava.ipc.IpcSession;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
+
+import de.cosmocode.palava.ipc.AbstractIpcSession;
+import de.cosmocode.palava.ipc.IpcSession;
 
 /**
  * Custon {@link IpcSession} implementation which holds a {@link Key}.
