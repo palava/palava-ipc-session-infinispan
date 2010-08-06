@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 
 import de.cosmocode.palava.ipc.AbstractIpcSession;
 import de.cosmocode.palava.ipc.IpcSession;
+import de.cosmocode.palava.ipc.session.infinispan.Session.Key;
 
 /**
  * Custon {@link IpcSession} implementation which holds a {@link Key}.
