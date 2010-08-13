@@ -73,7 +73,8 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
     public SessionProvider(
         Registry registry,
         MBeanService mBeanService,
-        @SessionCache Cache<?, ?> cache,
+        // don't use generics here, will break injection
+        @SuppressWarnings("rawtypes") @SessionCache Cache cache,
         @BackgroundScheduler ScheduledExecutorService scheduler,
         @Named(IpcSessionConfig.EXPIRATION_TIME) long time,
         @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
