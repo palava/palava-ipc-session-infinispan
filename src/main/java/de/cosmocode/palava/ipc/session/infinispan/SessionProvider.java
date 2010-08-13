@@ -86,17 +86,17 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
     }
 
     @Inject(optional = true)
-    void setInitialCheckDelay(@Named(IpcSessionConfig.INITIAL_CHECK_DELAY) long initialCheckDelay) {
+    void setInitialCheckDelay(@Named(InfinispanSessionConfig.INITIAL_CHECK_DELAY) long initialCheckDelay) {
         this.initialCheckDelay = initialCheckDelay;
     }
 
     @Inject(optional = true)
-    void setCheckPeriod(@Named(IpcSessionConfig.CHECK_PERIOD) long checkPeriod) {
+    void setCheckPeriod(@Named(InfinispanSessionConfig.CHECK_PERIOD) long checkPeriod) {
         this.checkPeriod = checkPeriod;
     }
 
     @Inject(optional = true)
-    void setCheckPeriodUnit(@Named(IpcSessionConfig.CHECK_PERIOD_UNIT) TimeUnit checkPeriodUnit) {
+    void setCheckPeriodUnit(@Named(InfinispanSessionConfig.CHECK_PERIOD_UNIT) TimeUnit checkPeriodUnit) {
         this.checkPeriodUnit = Preconditions.checkNotNull(checkPeriodUnit, "CheckPeriodUnit");
     }
     
