@@ -27,7 +27,7 @@ import de.cosmocode.palava.ipc.AbstractIpcSession;
 import de.cosmocode.palava.ipc.IpcSession;
 
 /**
- * Custon {@link IpcSession} implementation which holds a {@link Key}.
+ * Custon {@link IpcSession} implementation which holds a {@link Session.Key}.
  * 
  * @author Tobias Sarnowski
  */
