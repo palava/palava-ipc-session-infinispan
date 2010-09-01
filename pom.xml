@@ -10,10 +10,10 @@
 
 	<artifactId>palava-ipc-session-infinispan</artifactId>
 	<name>Palava IPC Session Infinispan</name>
-	<version>1.4.2</version>
+	<version>1.5-SNAPSHOT</version>
 
 	<scm>
-		<developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-ipc-session-infinispan/tags/1.4.2</developerConnection>
+		<developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-ipc-session-infinispan/trunk/</developerConnection>
 	</scm>
 
 	<repositories>
