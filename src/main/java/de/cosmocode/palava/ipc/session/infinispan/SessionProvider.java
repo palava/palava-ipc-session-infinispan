@@ -131,10 +131,16 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
 
     @Override
     public void run() {
-        for (IpcSession session : cache.values()) {
-            if (session.isExpired()) {
-                expireSession(session);
+        try {
+            for (IpcSession session : cache.values()) {
+                if (session.isExpired()) {
+                    expireSession(session);
+                }
             }
+        /* CHECKSTYLE:OFF */
+        } catch (Exception e) {
+        /* CHECKSTYLE:ON */
+            LOG.error("Error during expiring sessions", e);
         }
     }
 
