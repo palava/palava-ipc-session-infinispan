@@ -29,7 +29,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
-import de.cosmocode.palava.concurrent.BackgroundScheduler;
+import de.cosmocode.palava.concurrent.Background;
 import de.cosmocode.palava.core.Registry;
 import de.cosmocode.palava.core.lifecycle.Disposable;
 import de.cosmocode.palava.core.lifecycle.Initializable;
@@ -74,8 +74,8 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
         Registry registry,
         MBeanService mBeanService,
         // don't use generics here, will break injection
-        @SuppressWarnings("rawtypes") @SessionCache Cache cache,
-        @BackgroundScheduler ScheduledExecutorService scheduler,
+        @SessionCache Cache cache,
+        @Background ScheduledExecutorService scheduler,
         @Named(IpcSessionConfig.EXPIRATION_TIME) long time,
         @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
         this.registry = Preconditions.checkNotNull(registry, "Registry");
@@ -111,7 +111,6 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
         });
         
         scheduler.scheduleAtFixedRate(this, initialCheckDelay, checkPeriod, checkPeriodUnit);
-        
         mBeanService.register(this);
     }
 
