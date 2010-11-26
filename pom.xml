@@ -13,7 +13,7 @@
 	<version>1.5-SNAPSHOT</version>
 
 	<scm>
-		<developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-ipc-session-infinispan/trunk/</developerConnection>
+		<developerConnection>scm:git:git@github.com:palava/${project.artifactId}.git</developerConnection>
 	</scm>
 
 	<repositories>
