@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>de.cosmocode.palava</groupId>
-		<artifactId>palava-parent</artifactId>
-		<version>2.4.0</version>
-	</parent>
+  <parent>
+    <groupId>de.cosmocode.palava</groupId>
+    <artifactId>palava-parent</artifactId>
+    <version>2.4.0</version>
+  </parent>
 
-	<artifactId>palava-ipc-session-infinispan</artifactId>
-	<name>Palava IPC Session Infinispan</name>
-	<version>1.5-SNAPSHOT</version>
+  <artifactId>palava-ipc-session-infinispan</artifactId>
+  <name>Palava IPC Session Infinispan</name>
+  <version>1.5-SNAPSHOT</version>
 
-	<scm>
-		<developerConnection>scm:git:git@github.com:palava/${project.artifactId}.git</developerConnection>
-	</scm>
+  <scm>
+    <developerConnection>scm:git:git@github.com:palava/${project.artifactId}.git</developerConnection>
+  </scm>
 
-	<repositories>
-		<repository>
-			<id>cosmocode-public</id>
-			<name>CosmoCode Public Maven Repository</name>
-			<url>http://mvn.cosmocode.de/</url>
-		</repository>
-	</repositories>
+  <repositories>
+    <repository>
+      <id>cosmocode-public</id>
+      <name>CosmoCode Public Maven Repository</name>
+      <url>http://mvn.cosmocode.de/</url>
+    </repository>
+  </repositories>
 
-	<dependencies>
-		<dependency>
-			<groupId>de.cosmocode.palava</groupId>
-			<artifactId>palava-ipc</artifactId>
-			<version>[1.5,2)</version>
-		</dependency>
+  <dependencies>
+    <dependency>
+      <groupId>de.cosmocode.palava</groupId>
+      <artifactId>palava-ipc</artifactId>
+      <version>[1.5,2)</version>
+    </dependency>
 
         <dependency>
             <groupId>de.cosmocode.palava</groupId>
@@ -42,6 +42,6 @@
             <artifactId>palava-infinispan</artifactId>
             <version>[1.0,2)</version>
         </dependency>
-	</dependencies>
+  </dependencies>
 
 </project>
