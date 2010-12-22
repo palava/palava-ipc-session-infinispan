@@ -80,7 +80,7 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
         @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
         this.registry = Preconditions.checkNotNull(registry, "Registry");
         this.mBeanService = Preconditions.checkNotNull(mBeanService, "MBeanService");
-        this.cache = (Cache<Session.Key, IpcSession>) Preconditions.checkNotNull(cache, "Cache");
+        this.cache = Preconditions.checkNotNull(cache, "Cache");
         this.scheduler = Preconditions.checkNotNull(scheduler, "Scheduler");
         this.expirationTime = time;
         this.expirationTimeUnit = Preconditions.checkNotNull(timeUnit, "TimeUnit");
