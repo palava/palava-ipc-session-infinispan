@@ -31,7 +31,7 @@ import de.cosmocode.palava.ipc.IpcSession;
  * 
  * @author Tobias Sarnowski
  */
-final class Session extends AbstractIpcSession implements IpcSession, Serializable {
+final class Session extends AbstractIpcSession {
 
     private static final long serialVersionUID = 1399654783127769393L;
 
