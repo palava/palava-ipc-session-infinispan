@@ -4,7 +4,7 @@
   <parent>
     <groupId>de.cosmocode.palava</groupId>
     <artifactId>palava-parent</artifactId>
-    <version>2.6.0</version>
+    <version>2.6.2</version>
   </parent>
   <artifactId>palava-ipc-session-infinispan</artifactId>
   <name>Palava IPC Session Infinispan</name>
