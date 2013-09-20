@@ -8,7 +8,7 @@
   </parent>
   <artifactId>palava-ipc-session-infinispan</artifactId>
   <name>Palava IPC Session Infinispan</name>
-  <version>1.5-SNAPSHOT</version>
+  <version>1.5.0</version>
   <scm>
     <developerConnection>scm:git:git@github.com:palava/${project.artifactId}.git</developerConnection>
   </scm>
