@@ -16,20 +16,9 @@
 
 package de.cosmocode.palava.ipc.session.infinispan;
 
-import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import org.infinispan.Cache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-
-import de.cosmocode.palava.concurrent.Background;
 import de.cosmocode.palava.core.Registry;
 import de.cosmocode.palava.core.lifecycle.Disposable;
 import de.cosmocode.palava.core.lifecycle.Initializable;
@@ -37,11 +26,21 @@ import de.cosmocode.palava.core.lifecycle.LifecycleException;
 import de.cosmocode.palava.ipc.IpcConnection;
 import de.cosmocode.palava.ipc.IpcConnectionDestroyEvent;
 import de.cosmocode.palava.ipc.IpcSession;
-import de.cosmocode.palava.ipc.IpcSessionConfig;
 import de.cosmocode.palava.ipc.IpcSessionNotAttachedException;
 import de.cosmocode.palava.ipc.IpcSessionProvider;
 import de.cosmocode.palava.ipc.session.infinispan.Session.Key;
 import de.cosmocode.palava.jmx.MBeanService;
+import org.infinispan.Cache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
+import java.util.UUID;
 
 /**
  * Session provider baced by a {@link Cache}.
@@ -49,7 +48,7 @@ import de.cosmocode.palava.jmx.MBeanService;
  * @author Tobias Sarnowski
  */
 @Singleton
-final class SessionProvider implements IpcSessionProvider, Initializable, Runnable,
+final class SessionProvider implements IpcSessionProvider, Initializable,
     IpcConnectionDestroyEvent, Disposable, SessionProviderMBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(SessionProvider.class);
@@ -58,15 +57,8 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
     
     private final Registry registry;
     private final MBeanService mBeanService;
-    
-    private final ScheduledExecutorService scheduler;
-    
-    private long initialCheckDelay = 1;
-    private long checkPeriod = 15;
-    private TimeUnit checkPeriodUnit = TimeUnit.MINUTES;
-    
-    private final long expirationTime;
-    private final TimeUnit expirationTimeUnit;
+
+    private final TransactionManager transactionManager;
 
     @Inject
     @SuppressWarnings("unchecked")
@@ -74,82 +66,37 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
         Registry registry,
         MBeanService mBeanService,
         // don't use generics here, will break injection
-        @SessionCache Cache cache,
-        @Background ScheduledExecutorService scheduler,
-        @Named(IpcSessionConfig.EXPIRATION_TIME) long time,
-        @Named(IpcSessionConfig.EXPIRATION_TIME_UNIT) TimeUnit timeUnit) {
+        @SessionCache Cache cache) {
         this.registry = Preconditions.checkNotNull(registry, "Registry");
         this.mBeanService = Preconditions.checkNotNull(mBeanService, "MBeanService");
         this.cache = Preconditions.checkNotNull(cache, "Cache");
-        this.scheduler = Preconditions.checkNotNull(scheduler, "Scheduler");
-        this.expirationTime = time;
-        this.expirationTimeUnit = Preconditions.checkNotNull(timeUnit, "TimeUnit");
-    }
-
-    @Inject(optional = true)
-    void setInitialCheckDelay(@Named(InfinispanSessionConfig.INITIAL_CHECK_DELAY) long initialCheckDelay) {
-        this.initialCheckDelay = initialCheckDelay;
-    }
-
-    @Inject(optional = true)
-    void setCheckPeriod(@Named(InfinispanSessionConfig.CHECK_PERIOD) long checkPeriod) {
-        this.checkPeriod = checkPeriod;
-    }
-
-    @Inject(optional = true)
-    void setCheckPeriodUnit(@Named(InfinispanSessionConfig.CHECK_PERIOD_UNIT) TimeUnit checkPeriodUnit) {
-        this.checkPeriodUnit = Preconditions.checkNotNull(checkPeriodUnit, "CheckPeriodUnit");
+        this.transactionManager = cache.getAdvancedCache().getTransactionManager();
     }
     
     @Override
     public void initialize() throws LifecycleException {
         registry.register(IpcConnectionDestroyEvent.class, this);
-        
-        final String unit = checkPeriodUnit.name().toLowerCase();
-        LOG.info("Scheduling {} in {} {} and then periodically every {} {}", new Object[] {
-            this, initialCheckDelay, unit, checkPeriod, unit
-        });
-        
-        scheduler.scheduleAtFixedRate(this, initialCheckDelay, checkPeriod, checkPeriodUnit);
         mBeanService.register(this);
     }
 
     @Override
     public IpcSession getSession(String sessionId, String identifier) {
-        IpcSession session = cache.get(new Key(sessionId, identifier));
-        if (session != null && session.isExpired()) {
-            expireSession(session);
-            session = null;
+        if (transactionManager != null) {
+            try {
+                transactionManager.begin();
+            } catch (NotSupportedException e) {
+                LOG.warn("Transactions not supported, although a transaction manager was configured for infinispan");
+            } catch (SystemException e) {
+                throw new IllegalStateException(e);
+            }
         }
+
+        IpcSession session = cache.get(new Key(sessionId, identifier));
         if (session == null) {
-            session = new Session(UUID.randomUUID().toString(), identifier, expirationTime, expirationTimeUnit);
+            session = new Session(UUID.randomUUID().toString(), identifier);
             LOG.info("Created {}", session);
         }
         return session;
-    }
-
-    @Override
-    public void run() {
-        try {
-            for (IpcSession session : cache.values()) {
-                if (session.isExpired()) {
-                    expireSession(session);
-                }
-            }
-        /* CHECKSTYLE:OFF */
-        } catch (Exception e) {
-        /* CHECKSTYLE:ON */
-            LOG.error("Error during expiring sessions", e);
-        }
-    }
-
-    private void expireSession(IpcSession session) {
-        LOG.info("Expiring {}", session);
-        try {
-            cache.removeAsync(Key.get(session));
-        } finally {
-            session.clear();
-        }
     }
 
     @Override
@@ -163,6 +110,20 @@ final class SessionProvider implements IpcSessionProvider, Initializable, Runnab
         }
         
         cache.put(Key.get(session), session);
+
+        if (transactionManager != null) {
+            try {
+                transactionManager.commit();
+            } catch (RollbackException e) {
+                LOG.error("Cache put was rolled back", e);
+            } catch (HeuristicMixedException e) {
+                throw new IllegalStateException(e);
+            } catch (HeuristicRollbackException e) {
+                LOG.error("Cache put was rolled back", e);
+            } catch (SystemException e) {
+                throw new IllegalStateException(e);
+            }
+        }
     }
 
     @Override
